@@ -21,7 +21,18 @@ var budgetController = (function(){
         totals: {
             exp: 0,
             inc: 0
-        }
+        },
+        budget: 0,
+        percent: 0
+    }
+    
+    var calculateTotal = function(type){
+        var suma = 0;
+        data.allItems[type].forEach(function(curr){
+            suma += curr.val;
+        })
+        
+        data.totals[type] = suma;
     }
     
     return {
@@ -43,6 +54,29 @@ var budgetController = (function(){
             
             data.allItems[type].push(element);
             return element;
+        },
+        
+        calculateBudget: function(){
+            calculateTotal('exp');
+            calculateTotal('inc');
+            data.budget = data.totals.inc - data.totals.exp;
+            
+            if (data.totals.inc > 0) {
+                data.percent = Math.round((data.totals.exp / data.totals.inc) * 100);
+            } else {
+                data.percent = -1;
+            }      
+        },
+        
+        budgetData: function() {
+            return {
+                budget: data.budget,
+                totalExp: data.totals.exp,
+                totalInc: data.totals.inc,
+                percent: data.percent
+            }
+            
+                
         }
         
     }
@@ -69,7 +103,7 @@ var UiController = (function(){
             return {
                 type: document.querySelector(DOMStrings.inputType).value,
                 description: document.querySelector(DOMStrings.inputDescription).value,
-                value: document.querySelector(DOMStrings.inputValue).value
+                value: parseFloat(document.querySelector(DOMStrings.inputValue).value)
             }
         },
         
@@ -118,14 +152,27 @@ var UiController = (function(){
 var Controller = (function(bdgCtrl, uiCtrl){
     
     
-    var DOM = uiCtrl.getStrings()
+    var DOM = uiCtrl.getStrings();
+    
+    var updateBudget = function(){
+        var budget;
+        
+        bdgCtrl.calculateBudget();
+        budget = bdgCtrl.budgetData();
+        console.log(budget);
+        
+    }
     
     var ctrlAddItem = function(){
         var getInputs = uiCtrl.getInputData();
         console.log(getInputs);
         
         if(getInputs.description != "" && !isNaN(getInputs.value) && getInputs.description != 0){
-            var getItem = bdgCtrl.addItem(getInputs.type, getInputs.description, getInputs.value);console.log(getItem);uiCtrl.clearInputs();uiCtrl.displayItem(getItem, getInputs.type);
+            var getItem = bdgCtrl.addItem(getInputs.type, getInputs.description, getInputs.value);
+            console.log(getItem);
+            uiCtrl.clearInputs();
+            uiCtrl.displayItem(getItem, getInputs.type);
+            updateBudget();
         }
         
     }
