@@ -100,7 +100,8 @@ var UiController = (function(){
 		budgetIncPercent: '.budget__income--percentage',
 		budgetExpense: '.budget__expenses--value',
 		budgetExpPercent: '.budget__expenses--percentage',
-		budgetValue: '.budget__value'
+		budgetValue: '.budget__value',
+		container: '.container'
     }
     
     return {
@@ -130,15 +131,15 @@ var UiController = (function(){
             
             if(type === 'inc'){
                 element = document.querySelector(DOMStrings.income);
-                html = '<div class="item clearfix" id="income-%id%"><div class="item__description">%desc%</div><div class="right clearfix"><div class="item__value">%val%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
+                html = '<div class="item clearfix" id="inc-%id%"><div class="item__description">%desc%</div><div class="right clearfix"><div class="item__value">%val%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
             }
         
             else if(type === 'exp'){
                 element = document.querySelector(DOMStrings.expense);
-                html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%desc%</div><div class="right clearfix"><div class="item__value">%val%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
+                html = '<div class="item clearfix" id="exp-%id%"><div class="item__description">%desc%</div><div class="right clearfix"><div class="item__value">%val%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
             }
             
-            newHtml = html.replace('%id', obj.id);
+            newHtml = html.replace('%id%', obj.id);
             newHtml = newHtml.replace('%desc%', obj.desc);
             newHtml = newHtml.replace('%val%', obj.val);
             
@@ -196,6 +197,18 @@ var Controller = (function(bdgCtrl, uiCtrl){
         }
         
     }
+	
+	var ctrlDeleteItem = function(event){
+		var itemID, splitID, ID, type;
+		itemID = event.target.parentNode.parentNode.parentNode.parentNode.id;
+		
+		if(itemID){
+			splitID = itemID.split('-');
+			ID = splitID[1];
+			type = splitID[0];
+		}
+		
+	}
   
     var setupEventListeners = function(){
         document.querySelector(DOM.addButton).addEventListener('click', ctrlAddItem);
@@ -206,6 +219,8 @@ var Controller = (function(bdgCtrl, uiCtrl){
             ctrlAddItem();
         }
     })
+		
+		document.querySelector(DOM.container).addEventListener('click', ctrlDeleteItem);
     }
     
     return {
