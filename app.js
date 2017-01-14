@@ -8,6 +8,18 @@ var budgetController = (function () {
 		this.id = id;
 		this.desc = desc;
 		this.val = val;
+		this.percent = -1;
+	}
+	expenses.prototype.calcPercent = function (totalIncome) {
+		if (totalIncome > 0) {
+			this.percent = Math.round((this.val / totalIncome) * 100);
+		}
+		else {
+			this.percent = -1;
+		}
+	}
+	expenses.prototype.getPercent = function () {
+		return this.percent;
 	}
 	var data = {
 		allItems: {
@@ -55,7 +67,7 @@ var budgetController = (function () {
 			if (index !== -1) {
 				data.allItems[type].splice(index, 1);
 			}
-		, }
+		},
 		calculateBudget: function () {
 			calculateTotal('exp');
 			calculateTotal('inc');
@@ -67,6 +79,17 @@ var budgetController = (function () {
 				data.percent = -1;
 			}
 		}
+		, getPercent: function () {
+			var allPerc = data.allItems.exp.map(function (curr) {
+				return curr.getPercent();
+			})
+			return allPerc;
+		}
+		, calculatePercent: function () {
+			data.allItems.exp.forEach(function (curr) {
+				curr.calcPercent(data.totals.inc);
+			})
+		}
 		, budgetData: function () {
 			return {
 				budget: data.budget
@@ -77,11 +100,6 @@ var budgetController = (function () {
 		}
 	}
 })();
-
-
-
-
-
 var UiController = (function () {
 	var DOMStrings = {
 		inputType: '.add__type'
@@ -141,11 +159,6 @@ var UiController = (function () {
 		}
 	}
 })();
-
-
-
-
-
 var Controller = (function (bdgCtrl, uiCtrl) {
 		var DOM = uiCtrl.getStrings();
 		var updateBudget = function () {
@@ -154,6 +167,12 @@ var Controller = (function (bdgCtrl, uiCtrl) {
 			budget = bdgCtrl.budgetData();
 			console.log(budget);
 			uiCtrl.displayBudget(budget);
+		}
+		var updatePercent = function () {
+			bdgCtrl.calculatePercent();
+			var percentages = bdgCtrl.getPercent();
+			console.log(percentages);
+
 		}
 		var ctrlAddItem = function () {
 			var getInputs = uiCtrl.getInputData();
@@ -164,6 +183,7 @@ var Controller = (function (bdgCtrl, uiCtrl) {
 				uiCtrl.clearInputs();
 				uiCtrl.displayItem(getItem, getInputs.type);
 				updateBudget();
+				updatePercent();
 			}
 		}
 		var ctrlDeleteItem = function (event) {
@@ -174,8 +194,10 @@ var Controller = (function (bdgCtrl, uiCtrl) {
 				ID = parseFloat(splitID[1]);
 				type = splitID[0];
 				bdgCtrl.deleteItem(type, ID);
+				updateBudget();
+				updatePercent();
 			}
-		}
+		};
 		var setupEventListeners = function () {
 			document.querySelector(DOM.addButton).addEventListener('click', ctrlAddItem);
 			document.addEventListener('keypress', function (event) {
@@ -183,10 +205,7 @@ var Controller = (function (bdgCtrl, uiCtrl) {
 					ctrlAddItem();
 				}
 			})
-			if (event.keyCode === 13 || event.which === 13) {
-				ctrlAddItem();
-			}
-		}) document.querySelector(DOM.container).addEventListener('click', ctrlDeleteItem);
+		document.querySelector(DOM.container).addEventListener('click', ctrlDeleteItem);
 }
 return {
 	init: function () {
